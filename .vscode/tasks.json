@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Arduino Sketch",
+            "type": "shell",
+            "command": "arduino-cli compile --fqbn arduino:avr:uno arduino/vehicle_telemetry/vehicle_telemetry.ino",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Upload Arduino Sketch",
+            "type": "shell",
+            "command": "arduino-cli upload -p COM6 --fqbn arduino:avr:uno arduino/vehicle_telemetry/vehicle_telemetry.ino",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+{
+    "board": "arduino:samd:arduino_zero_native",
+    "sketch": "arduino\\vehicle_telemetry\\vehicle_telemetry.ino",
+    "port": "COM12"
+}
