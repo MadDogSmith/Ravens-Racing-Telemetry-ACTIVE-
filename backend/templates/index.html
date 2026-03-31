@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telemetry Dashboard</title>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+    <style>
+        body {
+            background: #0f0f0f;
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .controls {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🏎 Live Telemetry</h1>
+
+    <div class="controls">
+        <button onclick="togglePause()">⏯ Pause / Resume</button>
+        <button onclick="resetZoom()">🔄 Reset Zoom</button>
+    </div>
+
+    <canvas id="chart"></canvas>
+
+    <script>
+        const socket = io();
+
+        let paused = false;
+
+        const ctx = document.getElementById("chart").getContext("2d");
+
+        const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Speed",
+                        borderColor: "cyan",
+                        data: []
+                    },
+                    {
+                        label: "RPM",
+                        borderColor: "red",
+                        data: []
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: "x"
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: "x"
+                        }
+                    }
+                }
+            }
+        });
+
+        socket.on("telemetry", (data) => {
+            if (paused) return;
+
+            chart.data.labels.push(data.TIME);
+            chart.data.datasets[0].data.push(data.SPEED);
+            chart.data.datasets[1].data.push(data.RPM);
+
+            if (chart.data.labels.length > 200) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(d => d.data.shift());
+            }
+
+            chart.update();
+        });
+
+        function togglePause() {
+            paused = !paused;
+        }
+
+        function resetZoom() {
+            chart.resetZoom();
+        }
+    </script>
+</body>
+</html>
