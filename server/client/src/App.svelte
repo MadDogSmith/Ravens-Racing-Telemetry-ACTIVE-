@@ -1,89 +1,67 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from './assets/vite.svg'
-  import heroImg from './assets/hero.png'
-  import Counter from './lib/Counter.svelte'
+  import { onMount } from "svelte";
+  import { io } from "socket.io-client";
+  import * as echarts from "echarts";
+
+  let chart;
+  let timeData = [];
+  let speedData = [];
+  let rpmData = [];
+
+  const socket = io("http://localhost:3001");
+
+  onMount(() => {
+    chart = echarts.init(document.getElementById("chart"));
+
+    socket.on("telemetry", (data) => {
+      timeData.push(new Date(data.time).toLocaleTimeString());
+      speedData.push(data.speed);
+      rpmData.push(data.rpm);
+
+      // keep last 100 points
+      if (timeData.length > 100) {
+        timeData.shift();
+        speedData.shift();
+        rpmData.shift();
+      }
+
+      chart.setOption({
+        title: { text: "🏎 Live Telemetry" },
+        tooltip: { trigger: "axis" },
+        xAxis: {
+          type: "category",
+          data: timeData
+        },
+        yAxis: { type: "value" },
+        series: [
+          {
+            name: "Speed",
+            type: "line",
+            data: speedData
+          },
+          {
+            name: "RPM",
+            type: "line",
+            data: rpmData
+          }
+        ]
+      });
+    });
+  });
 </script>
 
-<section id="center">
-  <div class="hero">
-    <img src={heroImg} class="base" width="170" height="179" alt="" />
-    <img src={svelteLogo} class="framework" alt="Svelte logo" />
-    <img src={viteLogo} class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/App.svelte</code> and save to test <code>HMR</code></p>
-  </div>
-  <Counter />
-</section>
+<style>
+  body {
+    background: #0f0f0f;
+    color: white;
+    font-family: Arial;
+  }
 
-<div class="ticks"></div>
+  #chart {
+    width: 100%;
+    height: 500px;
+  }
+</style>
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#documentation-icon"></use>
-    </svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank" rel="noreferrer">
-          <img class="logo" src={viteLogo} alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://svelte.dev/" target="_blank" rel="noreferrer">
-          <img class="button-icon" src={svelteLogo} alt="" />
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true">
-      <use href="/icons.svg#social-icon"></use>
-    </svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li>
-        <a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#github-icon"></use>
-          </svg>
-          GitHub
-        </a>
-      </li>
-      <li>
-        <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#discord-icon"></use>
-          </svg>
-          Discord
-        </a>
-      </li>
-      <li>
-        <a href="https://x.com/vite_js" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#x-icon"></use>
-          </svg>
-          X.com
-        </a>
-      </li>
-      <li>
-        <a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">
-          <svg class="button-icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#bluesky-icon"></use>
-          </svg>
-          Bluesky
-        </a>
-      </li>
-    </ul>
-  </div>
-</section>
-
-<div class="ticks"></div>
-<section id="spacer"></section>
+<h1>🏎 Svelte Telemetry Dashboard</h1>
+<div id="chart"></div>
