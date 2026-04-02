@@ -14,7 +14,6 @@ void setup()
 void loop()
 {
     unsigned long now = millis();
-
     if (now - lastSend >= interval)
     {
         lastSend = now;
